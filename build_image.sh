@@ -1,23 +1,27 @@
 #!/bin/bash
 
+IMAGE="ghcr.io/sartais/php_grpc"
+
 # Prompt for the PHP tag
-echo "Enter PHP tag for the debian base PHP image: "
-read tagName
-export TAG_NAME=$tagName
+read -rp "Enter PHP tag for the debian base PHP image (e.g. 8.4): " TAG_NAME
 
 # Ask if the image should also be tagged as "latest" (default: no)
-read -p "Do you want to also tag this image as 'latest'? (y/N) " tagLatest
+read -rp "Do you want to also tag this image as 'latest'? (y/N) " TAG_LATEST
 
-echo "Building image..."
-docker build --build-arg PHP_TAG=$TAG_NAME -t ghcr.io/redfieldchristabel/php_grpc:$TAG_NAME .
-
-if [[ "$tagLatest" =~ ^[Yy] ]]; then
-  docker tag ghcr.io/redfieldchristabel/php_grpc:$TAG_NAME ghcr.io/redfieldchristabel/php_grpc:latest
+# Prepare optional extra tag(s)
+EXTRA_TAGS=()
+if [[ "$TAG_LATEST" =~ ^[Yy]$ ]]; then
+  EXTRA_TAGS+=(-t "${IMAGE}:latest")
 fi
 
-echo "Pushing image..."
-docker push ghcr.io/redfieldchristabel/php_grpc:$TAG_NAME
+echo "Building and pushing multi-arch image for ${IMAGE}:${TAG_NAME} ..."
 
-if [[ "$tagLatest" =~ ^[Yy] ]]; then
-  docker push ghcr.io/redfieldchristabel/php_grpc:latest
-fi
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --build-arg PHP_TAG="${TAG_NAME}" \
+  -t "${IMAGE}:${TAG_NAME}" \
+  "${EXTRA_TAGS[@]}" \
+  --push \
+  .
+
+echo "Done."
