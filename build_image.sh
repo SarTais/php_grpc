@@ -2,6 +2,15 @@
 
 IMAGE="ghcr.io/sartais/php_grpc"
 
+# Ensure we are using a multi-arch builder
+if ! docker buildx inspect multiarch >/dev/null 2>&1; then
+  docker buildx create --name multiarch --driver docker-container --use
+else
+  docker buildx use multiarch
+fi
+
+docker buildx inspect --bootstrap >/dev/null 2>&1
+
 # Prompt for the PHP tag
 read -rp "Enter PHP tag for the debian base PHP image (e.g. 8.4): " TAG_NAME
 

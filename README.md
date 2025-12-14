@@ -7,6 +7,7 @@ This repository hosts a Docker image that includes the pre-built [gRPC PHP exten
 
 - PHP 8.3
 - PHP 8.4
+- PHP 8.5
 
 ## Multi-Architecture (buildx) Support
 
